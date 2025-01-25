@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Video to WebSocket Server 1</title>
+</head>
+<body>
+    <h1>Stream Video to Node.js Server via WebSocket</h1>
+    <video id="preview" autoplay muted></video>
+    <script>
+        const videoElement = document.getElementById('preview');
+        const ws = new WebSocket('ws://localhost:3200'); // Connect to WebSocket server
+
+        ws.onopen = () => {
+            console.log('WebSocket connection established');
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        // Access the webcam
+        navigator.mediaDevices.getUserMedia({ video: {
+            facingMode: 'environment'
+        }, audio: false,})
+            .then((stream) => {
+                videoElement.srcObject = stream;
+
+                // Use MediaRecorder to capture video chunks
+                const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
+                        ws.send(event.data); // Send video chunk to the WebSocket server
+                    }
+                };
+
+                mediaRecorder.start(500); // Capture video in 1-second chunks
+            })
+            .catch((err) => console.error('Error accessing webcam:', err));
+    </script>
+</body>
+</html>

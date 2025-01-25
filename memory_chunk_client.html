@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Stream Client</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mux.js/5.11.3/mux.min.js"></script>
+</head>
+<body>
+    <h1>Stream Video from Memory</h1>
+    <video id="stream" controls autoplay></video>
+    <script>
+        const video = document.getElementById('stream');
+        const ws = new WebSocket('ws://localhost:3300'); // Connect to WebSocket server
+
+        const mediaSource = new MediaSource();
+        video.src = URL.createObjectURL(mediaSource);
+
+        mediaSource.addEventListener('sourceopen', () => {
+            const sourceBuffer = mediaSource.addSourceBuffer(muxjs.mp2t); // MPEG-TS format
+
+            ws.onmessage = (event) => {
+                const chunk = event.data;
+                if (!sourceBuffer.updating) {
+                    sourceBuffer.appendBuffer(chunk);
+                }
+            };
+        });
+
+        ws.onerror = (err) => {
+            console.error('WebSocket error:', err);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
+    </script>
+</body>
+</html>

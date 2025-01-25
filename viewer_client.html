@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLS Stream 1</title>
+</head>
+<body>
+    <h1>Live HLS Stream 1</h1>
+    <video id="liveStream" controls autoplay width="720" height="480">
+        <source src="http://127.0.0.1:3700/hls/playlist.m3u8" type="application/x-mpegURL">
+        Your browser does not support HLS.
+    </video>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        const video = document.getElementById('liveStream');
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource('http://localhost:3700/hls/playlist.m3u8');
+            hls.attachMedia(video);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = '/hls/playlist.m3u8';
+        }
+    </script>
+</body>
+</html>
